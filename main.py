@@ -24,7 +24,7 @@ def check_stagnation():
     ステータスが「In Progress」かつ、最終更新から「2時間(120分)」経過したタスクを1つ抽出。
     """
     now = datetime.now(timezone.utc)
-    threshold = (now - timedelta(minutes=0)).isoformat()
+    threshold = (now - timedelta(minutes=120)).isoformat()
     
     try:
         response = notion.databases.query(
