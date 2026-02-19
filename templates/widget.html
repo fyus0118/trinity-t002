@@ -3,161 +3,326 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tactical Task Monitor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Teko:wght@600&display=swap" rel="stylesheet">
+    <title>THE SINGULARITY // DUAL MONITOR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;900&family=Noto+Sans+JP:wght@900&family=Teko:wght@600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #050505;
-            --alert-red: #ff003c;
-            --alert-dark: #3a0000;
-            --normal-green: #00ff66;
-            --normal-dark: #002211;
+            --void-bg: #030305;
+            --blood-neon: #ff1133;
+            --cyan-neon: #00ffcc;
+            --pure-light: #ffffff;
+            --glass-bg: rgba(10, 5, 5, 0.4);
         }
 
         body, html {
-            margin: 0; padding: 0; height: 100%;
-            background-color: var(--bg-color);
-            font-family: 'Noto Sans JP', sans-serif;
-            color: white; overflow: hidden;
-            display: flex; justify-content: center; align-items: center;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: var(--void-bg); color: var(--pure-light);
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            overflow: hidden; perspective: 1200px;
+            transition: background-color 0.1s;
         }
 
-        /* 📺 画面全体の走査線（モニターエフェクト） */
-        .scanlines {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
-            background-size: 100% 4px; pointer-events: none; z-index: 100;
+        #particle-canvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
         }
 
-        /* Sci-Fi風の斜めカットパネル */
-        .panel {
-            width: 80%; max-width: 800px; padding: 40px;
-            position: relative; z-index: 10;
-            clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
-            border: 2px solid;
-            background: rgba(0, 0, 0, 0.8);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        .dual-scene {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center; gap: 40px;
+            z-index: 10; transform-style: preserve-3d; pointer-events: none;
+            padding: 0 40px; box-sizing: border-box;
         }
 
-        /* =========================================
-           🟢 ノーマルモードのデザイン
-        ========================================= */
-        .panel.normal {
-            border-color: var(--normal-green);
-            animation: pulse-green 4s infinite alternate;
-        }
-        .normal-header {
-            font-family: 'Teko', sans-serif; font-size: 3rem; color: var(--normal-green);
-            letter-spacing: 5px; text-align: center; margin: 0;
-        }
-        .normal-text {
-            color: #88ffbb; text-align: center; font-size: 1.2rem; margin-top: 10px;
-        }
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 10px var(--normal-dark), inset 0 0 10px var(--normal-dark); }
-            100% { box-shadow: 0 0 30px var(--normal-green), inset 0 0 20px var(--normal-dark); }
+        .hologram-card {
+            position: relative; flex: 1; max-width: 600px; height: 75vh;
+            padding: 50px 40px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
+            transform-style: preserve-3d; transition: transform 0.1s ease-out;
+            pointer-events: auto; display: flex; flex-direction: column; justify-content: center;
         }
 
-        /* =========================================
-           🚨 アラートモードのデザイン
-        ========================================= */
-        .panel.alert {
-            border-color: var(--alert-red);
-            background: rgba(20, 0, 0, 0.9);
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite, pulse-red 1s infinite alternate;
+        .layer-deep { transform: translateZ(20px); }
+        .layer-mid { transform: translateZ(50px); }
+        .layer-front { transform: translateZ(90px); }
+
+        /* ==================== 左パネル ==================== */
+        .card-alert {
+            border: 1px solid rgba(255, 17, 51, 0.2);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), inset 0 0 40px rgba(255, 17, 51, 0.1);
         }
+        .system-warning {
+            font-family: 'Teko', sans-serif; font-size: 2rem; letter-spacing: 8px;
+            color: var(--blood-neon); text-align: center; text-transform: uppercase;
+            text-shadow: 0 0 20px var(--blood-neon); margin-bottom: 15px;
+        }
+        .target-task {
+            font-size: clamp(2rem, 3vw, 3rem); font-weight: 900; line-height: 1.2;
+            text-align: center; margin: 0 0 30px 0; word-break: keep-all;
+            background: linear-gradient(to right, #fff, #ffaaaa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .debt-container {
+            text-align: center; margin-bottom: 30px; padding: 10px;
+            border-top: 1px solid rgba(255,17,51,0.3); border-bottom: 1px solid rgba(255,17,51,0.3);
+            background: rgba(255, 0, 0, 0.05);
+        }
+        .debt-label { font-size: 0.8rem; letter-spacing: 4px; color: #aaa; }
+        .debt-value { font-family: 'Teko', sans-serif; font-size: 3.5rem; font-weight: 600; color: var(--blood-neon); line-height: 1; }
         
-        /* 危険を知らせるハザードストライプ */
-        .hazard-bar {
-            background: repeating-linear-gradient(
-                -45deg, var(--alert-red), var(--alert-red) 20px,
-                #000 20px, #000 40px
-            );
-            height: 30px; width: 100%; margin-bottom: 20px;
-            border: 2px solid var(--alert-red); box-sizing: border-box;
+        .antidote-box {
+            background: var(--pure-light); color: var(--void-bg);
+            padding: 20px 30px; border-radius: 12px; text-align: center;
+            box-shadow: 0 20px 40px rgba(255, 255, 255, 0.2);
+        }
+        .antidote-label { font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; color: #555; margin-bottom: 5px; display: block; }
+        .command-text { font-size: 1.5rem; font-weight: 900; }
+
+        /* ==================== 右パネル ==================== */
+        .card-normal {
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), inset 0 0 40px rgba(0, 255, 204, 0.05);
+        }
+        .zen-circle {
+            width: 250px; height: 250px; border-radius: 50%; margin: 20px auto;
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            box-shadow: inset 0 0 50px rgba(0, 255, 204, 0.1), 0 0 80px rgba(0, 255, 204, 0.1);
+            animation: pulse-zen 4s infinite alternate ease-in-out;
+            display: flex; justify-content: center; align-items: center; position: relative;
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .zen-circle:hover {
+            transform: scale(1.05) translateZ(50px);
+            box-shadow: inset 0 0 80px rgba(0, 255, 204, 0.3), 0 0 100px rgba(0, 255, 204, 0.3);
+        }
+        .zen-inner {
+            position: absolute; width: 170px; height: 170px; border-radius: 50%;
+            border: 2px dashed rgba(0, 255, 204, 0.5);
+            animation: spin-slow 20s linear infinite;
+        }
+        .timer-display {
+            font-family: 'Teko', sans-serif; font-size: 4.5rem; font-weight: 600;
+            color: var(--cyan-neon); text-shadow: 0 0 15px var(--cyan-neon);
+            z-index: 2; line-height: 1;
+        }
+        .timer-label {
+            position: absolute; bottom: 40px; font-size: 0.75rem; color: rgba(0,255,204,0.7);
+            letter-spacing: 3px; z-index: 2; font-weight: bold;
+        }
+        .flow-text {
+            text-align: center; color: var(--pure-light);
+            font-size: 1.5rem; letter-spacing: 2px;
+            font-family: 'Noto Sans JP', sans-serif; font-weight: 900;
         }
 
-        .alert-header {
-            font-family: 'Teko', sans-serif; font-size: 5rem; color: var(--alert-red);
-            letter-spacing: 10px; text-align: center; margin: 0; line-height: 1;
-            text-shadow: 0 0 10px var(--alert-red);
-        }
-
-        .target-box {
-            border-left: 5px solid var(--alert-red); padding-left: 15px; margin: 30px 0;
-        }
-        .target-label { font-size: 0.9rem; color: #ff6666; font-weight: bold; letter-spacing: 2px; }
-        .target-name { font-size: 2rem; font-weight: 900; color: white; margin: 5px 0 0 0; }
-
-        .command-box {
-            background: #110000; border: 1px solid var(--alert-red); padding: 20px;
-            font-family: monospace; font-size: 1.5rem; color: white; min-height: 60px;
-        }
-        /* カーソルの点滅エフェクト */
-        .cursor { display: inline-block; width: 10px; height: 1.2rem; background-color: var(--alert-red); animation: blink 1s infinite; vertical-align: middle; margin-left: 5px; }
-
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 20px var(--alert-dark); }
-            100% { box-shadow: 0 0 50px var(--alert-red), inset 0 0 30px var(--alert-dark); }
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-2px) rotate(-0.5deg); }
-            40% { transform: translateX(2px) rotate(0.5deg); }
-            60% { transform: translateX(-2px) rotate(0.5deg); }
-            80% { transform: translateX(2px) rotate(-0.5deg); }
-        }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes pulse-zen { 0% { opacity: 0.8; } 100% { opacity: 1; } }
+        @keyframes spin-slow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="scanlines"></div>
 
-    {% if mode == "alert" %}
-        <div class="panel alert">
-            <div class="hazard-bar"></div>
-            <h1 class="alert-header">WARNING</h1>
-            <div class="hazard-bar"></div>
-            
-            <div class="target-box">
-                <div class="target-label">TARGET STAGNANT TASK</div>
-                <div class="target-name">{{ task_name }}</div>
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="dual-scene">
+        <div class="hologram-card card-alert">
+            <div class="system-warning layer-deep">TEMPORAL ANOMALY DETECTED</div>
+            <h1 class="target-task layer-mid">[ AWAITING API UPLINK ]</h1>
+            <div class="debt-container layer-deep">
+                <div class="debt-label">SUNK COST DEBT (MS)</div>
+                <div class="debt-value" id="debt-counter">7200000</div>
             </div>
-
-            <div class="target-label" style="margin-bottom: 5px;">TACTICAL COMMAND</div>
-            <div class="command-box">
-                <span id="raw-command" style="display:none;">{{ command }}</span>
-                <span id="typewriter-output"></span><span class="cursor"></span>
+            <div class="antidote-box layer-front">
+                <span class="antidote-label">AI MICRO-RESOLUTION [ 5 MIN ]</span>
+                <div class="command-text">
+                    <span id="raw-command" style="display:none;">CONNECTING TO OPENAI SECURE SERVER... STANDBY FOR DIRECTIVE.</span>
+                    <span id="typewriter-output"></span>
+                </div>
             </div>
         </div>
 
-        <script>
-            // カタカタと文字を打つタイプライターエフェクト
-            document.addEventListener("DOMContentLoaded", () => {
-                const text = document.getElementById("raw-command").innerText;
-                const output = document.getElementById("typewriter-output");
-                let index = 0;
+        <div class="hologram-card card-normal">
+            <div class="layer-deep" style="position: absolute; top: 30px; right: 30px; color: var(--cyan-neon); font-family: 'Teko'; letter-spacing: 2px;">
+                SYS.NODE: SECURE
+            </div>
+            <div class="layer-mid" style="text-align: center; margin-bottom: 10px;">
+                <div style="font-size: 0.85rem; color: #888; letter-spacing: 4px; font-weight: bold;">TARGETS ELIMINATED TODAY</div>
+                <div style="font-size: 3rem; font-family: 'Teko'; font-weight: 600; color: var(--cyan-neon); text-shadow: 0 0 15px var(--cyan-neon); line-height: 1;">04</div>
+            </div>
+            <div class="zen-circle layer-mid" id="tactical-timer">
+                <div class="zen-inner" id="zen-inner-spin"></div>
+                <div class="timer-display" id="timer-text">05:00</div>
+                <div class="timer-label" id="timer-label">CLICK TO INITIATE</div>
+            </div>
+            <div class="flow-text layer-front" style="margin-top: 10px;">
+                <span style="font-size: 0.8rem; color: #888; letter-spacing: 4px; display:block; margin-bottom:5px;">NEXT QUEUED TARGET</span>
+                [ DATA ENCRYPTED ]
+            </div>
+        </div>
+    </div>
 
-                function typeWriter() {
-                    if (index < text.length) {
-                        output.innerHTML += text.charAt(index);
-                        index++;
-                        // 30〜80ミリ秒のランダムな間隔で打鍵感をリアルに演出
-                        const speed = Math.floor(Math.random() * 50) + 30;
-                        setTimeout(typeWriter, speed);
+    <script>
+        // --- 1. マウス連動の3Dホログラム ---
+        const cards = document.querySelectorAll('.hologram-card');
+        document.addEventListener('mousemove', (e) => {
+            let xAxis = (window.innerWidth / 2 - e.pageX) / 35;
+            let yAxis = (window.innerHeight / 2 - e.pageY) / 35;
+            cards.forEach(card => {
+                card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            });
+        });
+        document.addEventListener('mouseleave', () => {
+            cards.forEach(card => {
+                card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+            });
+        });
+
+        // --- 2. 超高速カウンター ---
+        const counterEl = document.getElementById('debt-counter');
+        let msDebt = 7200000;
+        setInterval(() => {
+            msDebt += 17;
+            counterEl.innerText = msDebt.toLocaleString('en-US');
+        }, 17);
+
+        // --- 3. タイプライター ---
+        setTimeout(() => {
+            const text = document.getElementById("raw-command").innerText;
+            const output = document.getElementById("typewriter-output");
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    output.innerHTML += text.charAt(i); i++;
+                    setTimeout(type, 30);
+                }
+            }
+            type();
+        }, 800);
+
+        // --- 4. 5分タイマーと爆発エフェクト ---
+        let timerRunning = false;
+        let timeLeft = 300;
+        const timerBtn = document.getElementById('tactical-timer');
+        const timerText = document.getElementById('timer-text');
+        const timerLabel = document.getElementById('timer-label');
+        const zenInner = document.getElementById('zen-inner-spin');
+
+        timerBtn.addEventListener('click', () => {
+            if (timerRunning) return;
+            timerRunning = true;
+            
+            timerText.style.color = '#ffaa00';
+            timerText.style.textShadow = '0 0 20px #ffaa00';
+            timerLabel.innerText = 'TACTICAL ENGAGEMENT';
+            timerLabel.style.color = '#ffaa00';
+            zenInner.style.animationDuration = '2s';
+            zenInner.style.borderColor = '#ffaa00';
+
+            const countdown = setInterval(() => {
+                timeLeft--;
+                let m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                let s = (timeLeft % 60).toString().padStart(2, '0');
+                timerText.innerText = `${m}:${s}`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    timerText.innerText = "00:00";
+                    triggerExplosion();
+                }
+            }, 1000);
+        });
+
+        function triggerExplosion() {
+            // ★ここが前回のバグの原因でした（クォーテーション抜けを修正）
+            document.body.style.backgroundColor = "var(--blood-neon)";
+            setTimeout(() => document.body.style.backgroundColor = "var(--pure-light)", 100);
+            setTimeout(() => document.body.style.backgroundColor = "var(--blood-neon)", 200);
+            setTimeout(() => document.body.style.backgroundColor = "var(--void-bg)", 400);
+
+            timerText.style.color = 'var(--blood-neon)';
+            timerText.style.textShadow = '0 0 30px var(--blood-neon)';
+            timerText.innerText = "K.O.";
+            timerLabel.innerText = 'TARGET ELIMINATED';
+            timerLabel.style.color = 'var(--blood-neon)';
+            zenInner.style.borderColor = 'var(--blood-neon)';
+
+            particles.forEach(p => {
+                p.x = (Math.random() - 0.5) * width * 3;
+                p.y = (Math.random() - 0.5) * height * 3;
+                p.z = Math.random() * 50;
+                p.color = `rgba(255, 30, 30, `;
+                p.size = Math.random() * 8 + 4;
+            });
+        }
+
+        // --- 5. インタラクティブ・パーティクル ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let mouse = { x: -1000, y: -1000 };
+        
+        document.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX; mouse.y = e.clientY;
+        });
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = (Math.random() - 0.5) * width * 2;
+                this.y = (Math.random() - 0.5) * height * 2;
+                this.z = Math.random() * 1000;
+                this.size = Math.random() * 2 + 0.5;
+                this.color = null;
+            }
+            update() {
+                this.z -= 2; 
+                if (this.z <= 0) this.reset();
+
+                let fov = 300;
+                let scale = fov / (fov + this.z);
+                let x2d = this.x * scale + width / 2;
+                let y2d = this.y * scale + height / 2;
+
+                let dx = x2d - mouse.x;
+                let dy = y2d - mouse.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 150) {
+                    this.x += dx * 0.05; this.y += dy * 0.05;
+                }
+
+                ctx.beginPath();
+                ctx.arc(x2d, y2d, this.size * scale, 0, Math.PI * 2);
+                
+                if (this.color && this.color.includes("255, 30, 30")) {
+                    ctx.fillStyle = this.color + (1 - this.z/1000) + ")";
+                } else {
+                    if (x2d < width / 2) {
+                        ctx.fillStyle = `rgba(255, ${Math.random()*50}, ${Math.random()*50}, ${(1 - this.z/1000)})`;
+                    } else {
+                        ctx.fillStyle = `rgba(0, ${150+Math.random()*105}, 255, ${(1 - this.z/1000)})`;
                     }
                 }
-                // 画面表示から1秒（1000ms）待ってから指令の出力を開始
-                setTimeout(typeWriter, 1000);
-            });
-        </script>
+                ctx.fill();
+            }
+        }
 
-    {% else %}
-        <div class="panel normal">
-            <h1 class="normal-header">SYSTEM ACTIVE</h1>
-            <div class="normal-text">タスク マトリックスをスキャンしています...<br>異常なし</div>
-        </div>
-    {% endif %}
+        for (let i = 0; i < 400; i++) { particles.push(new Particle()); }
 
+        function animate() {
+            ctx.fillStyle = 'rgba(3, 3, 5, 0.2)';
+            ctx.fillRect(0, 0, width, height);
+            particles.forEach(p => p.update());
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
 </body>
 </html>
