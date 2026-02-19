@@ -19,7 +19,7 @@
             background-color: var(--void-bg); color: var(--pure-light);
             font-family: 'Inter', 'Noto Sans JP', sans-serif;
             /* スマホでの縦スクロールを許可しつつ、余分な横揺れを防ぐ */
-            overflow-x: hidden; overflow-y: auto; 
+            overflow-x: hidden; overflow-y: auto;
             perspective: 1200px;
             transition: background-color 0.1s;
         }
@@ -279,6 +279,9 @@
         });
 
         function triggerExplosion() {
+            // --- 【付け足し1】スマホ用バイブレーション (物理ショック) ---
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
             document.body.style.backgroundColor = "var(--blood-neon)";
             setTimeout(() => document.body.style.backgroundColor = "var(--pure-light)", 100);
             setTimeout(() => document.body.style.backgroundColor = "var(--blood-neon)", 200);
@@ -324,7 +327,7 @@
                 this.color = null;
             }
             update() {
-                this.z -= 2; 
+                this.z -= 2;
                 if (this.z <= 0) this.reset();
 
                 let fov = 300;
@@ -364,6 +367,21 @@
             requestAnimationFrame(animate);
         }
         animate();
+
+        // --- 【付け足し2】ホログラフィック・ティルト (3D視差効果) ---
+        const targetUI = document.getElementById('tactical-timer');
+        if (targetUI) {
+            document.addEventListener('mousemove', (e) => {
+                let xAxis = (window.innerWidth / 2 - e.pageX) / 40;
+                let yAxis = (window.innerHeight / 2 - e.pageY) / 40;
+                targetUI.style.transform = `perspective(1000px) rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            });
+            document.addEventListener('mouseleave', () => {
+                targetUI.style.transition = 'transform 0.5s ease';
+                targetUI.style.transform = `perspective(1000px) rotateY(0deg) rotateX(0deg)`;
+                setTimeout(() => targetUI.style.transition = '', 500);
+            });
+        }
     </script>
 </body>
 </html>
