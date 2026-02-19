@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE SINGULARITY // DUAL MONITOR</title>
+    <title>THE SINGULARITY // DUAL MONITOR (RESPONSIVE)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;900&family=Noto+Sans+JP:wght@900&family=Teko:wght@600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -18,23 +18,27 @@
             margin: 0; padding: 0; width: 100%; height: 100%;
             background-color: var(--void-bg); color: var(--pure-light);
             font-family: 'Inter', 'Noto Sans JP', sans-serif;
-            overflow: hidden; perspective: 1200px;
+            /* スマホでの縦スクロールを許可しつつ、余分な横揺れを防ぐ */
+            overflow-x: hidden; overflow-y: auto; 
+            perspective: 1200px;
             transition: background-color 0.1s;
         }
 
+        /* 背景パーティクルはスクロールしても固定 */
         #particle-canvas {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;
         }
 
+        /* パネルを並べるコンテナ */
         .dual-scene {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center; gap: 40px;
-            z-index: 10; transform-style: preserve-3d; pointer-events: none;
-            padding: 0 40px; box-sizing: border-box;
+            position: relative; width: 100%; min-height: 100%;
+            display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 40px;
+            z-index: 10; transform-style: preserve-3d;
+            padding: 40px; box-sizing: border-box;
         }
 
         .hologram-card {
-            position: relative; flex: 1; max-width: 600px; height: 75vh;
+            position: relative; flex: 1; max-width: 600px; height: 75vh; min-height: 600px;
             padding: 50px 40px;
             background: var(--glass-bg);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
@@ -58,7 +62,7 @@
             text-shadow: 0 0 20px var(--blood-neon); margin-bottom: 15px;
         }
         .target-task {
-            font-size: clamp(2rem, 3vw, 3rem); font-weight: 900; line-height: 1.2;
+            font-size: clamp(1.8rem, 3vw, 3rem); font-weight: 900; line-height: 1.2;
             text-align: center; margin: 0 0 30px 0; word-break: keep-all;
             background: linear-gradient(to right, #fff, #ffaaaa);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -77,7 +81,7 @@
             box-shadow: 0 20px 40px rgba(255, 255, 255, 0.2);
         }
         .antidote-label { font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; color: #555; margin-bottom: 5px; display: block; }
-        .command-text { font-size: 1.5rem; font-weight: 900; }
+        .command-text { font-size: 1.5rem; font-weight: 900; line-height: 1.4; }
 
         /* ==================== 右パネル ==================== */
         .card-normal {
@@ -92,7 +96,7 @@
             display: flex; justify-content: center; align-items: center; position: relative;
             cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
         }
-        .zen-circle:hover {
+        .zen-circle:hover, .zen-circle:active {
             transform: scale(1.05) translateZ(50px);
             box-shadow: inset 0 0 80px rgba(0, 255, 204, 0.3), 0 0 100px rgba(0, 255, 204, 0.3);
         }
@@ -104,11 +108,11 @@
         .timer-display {
             font-family: 'Teko', sans-serif; font-size: 4.5rem; font-weight: 600;
             color: var(--cyan-neon); text-shadow: 0 0 15px var(--cyan-neon);
-            z-index: 2; line-height: 1;
+            z-index: 2; line-height: 1; pointer-events: none;
         }
         .timer-label {
             position: absolute; bottom: 40px; font-size: 0.75rem; color: rgba(0,255,204,0.7);
-            letter-spacing: 3px; z-index: 2; font-weight: bold;
+            letter-spacing: 3px; z-index: 2; font-weight: bold; pointer-events: none;
         }
         .flow-text {
             text-align: center; color: var(--pure-light);
@@ -118,6 +122,28 @@
 
         @keyframes pulse-zen { 0% { opacity: 0.8; } 100% { opacity: 1; } }
         @keyframes spin-slow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* ==================== スマホ用補正 (レスポンシブ) ==================== */
+        @media (max-width: 900px) {
+            .dual-scene {
+                flex-direction: column; /* 縦並びに変更 */
+                padding: 20px;
+                gap: 30px;
+            }
+            .hologram-card {
+                width: 100%; height: auto; min-height: 60vh;
+                padding: 40px 20px;
+            }
+            .system-warning { font-size: 1.5rem; letter-spacing: 4px; }
+            .target-task { font-size: 1.8rem; }
+            .debt-value { font-size: 2.8rem; }
+            .command-text { font-size: 1.2rem; }
+            
+            .zen-circle { width: 200px; height: 200px; }
+            .zen-inner { width: 140px; height: 140px; }
+            .timer-display { font-size: 3.5rem; }
+            .timer-label { bottom: 30px; font-size: 0.65rem; }
+        }
     </style>
 </head>
 <body>
@@ -142,17 +168,17 @@
         </div>
 
         <div class="hologram-card card-normal">
-            <div class="layer-deep" style="position: absolute; top: 30px; right: 30px; color: var(--cyan-neon); font-family: 'Teko'; letter-spacing: 2px;">
+            <div class="layer-deep" style="position: absolute; top: 20px; right: 20px; color: var(--cyan-neon); font-family: 'Teko'; letter-spacing: 2px;">
                 SYS.NODE: SECURE
             </div>
-            <div class="layer-mid" style="text-align: center; margin-bottom: 10px;">
+            <div class="layer-mid" style="text-align: center; margin-bottom: 10px; margin-top: 20px;">
                 <div style="font-size: 0.85rem; color: #888; letter-spacing: 4px; font-weight: bold;">TARGETS ELIMINATED TODAY</div>
                 <div style="font-size: 3rem; font-family: 'Teko'; font-weight: 600; color: var(--cyan-neon); text-shadow: 0 0 15px var(--cyan-neon); line-height: 1;">04</div>
             </div>
             <div class="zen-circle layer-mid" id="tactical-timer">
                 <div class="zen-inner" id="zen-inner-spin"></div>
                 <div class="timer-display" id="timer-text">05:00</div>
-                <div class="timer-label" id="timer-label">CLICK TO INITIATE</div>
+                <div class="timer-label" id="timer-label">TAP TO INITIATE</div>
             </div>
             <div class="flow-text layer-front" style="margin-top: 10px;">
                 <span style="font-size: 0.8rem; color: #888; letter-spacing: 4px; display:block; margin-bottom:5px;">NEXT QUEUED TARGET</span>
@@ -162,20 +188,40 @@
     </div>
 
     <script>
-        // --- 1. マウス連動の3Dホログラム ---
+        // --- 1. マウス＆スマホの指に連動する3Dホログラム ---
         const cards = document.querySelectorAll('.hologram-card');
-        document.addEventListener('mousemove', (e) => {
-            let xAxis = (window.innerWidth / 2 - e.pageX) / 35;
-            let yAxis = (window.innerHeight / 2 - e.pageY) / 35;
+        
+        function handleMove(e) {
+            // タッチ（指）かマウスかを判定して座標を取得
+            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            let xAxis = (window.innerWidth / 2 - clientX) / 35;
+            let yAxis = (window.innerHeight / 2 - clientY) / 35;
+            
             cards.forEach(card => {
                 card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
             });
-        });
-        document.addEventListener('mouseleave', () => {
+
+            // 背景パーティクルのための座標更新
+            mouse.x = clientX;
+            mouse.y = clientY;
+        }
+
+        function handleLeave() {
             cards.forEach(card => {
                 card.style.transform = `rotateY(0deg) rotateX(0deg)`;
             });
-        });
+            mouse.x = -1000;
+            mouse.y = -1000;
+        }
+
+        // PC用マウスイベント
+        document.addEventListener('mousemove', handleMove);
+        document.addEventListener('mouseleave', handleLeave);
+        // スマホ用タッチイベント
+        document.addEventListener('touchmove', handleMove, {passive: true});
+        document.addEventListener('touchend', handleLeave);
 
         // --- 2. 超高速カウンター ---
         const counterEl = document.getElementById('debt-counter');
@@ -233,7 +279,6 @@
         });
 
         function triggerExplosion() {
-            // ★ここが前回のバグの原因でした（クォーテーション抜けを修正）
             document.body.style.backgroundColor = "var(--blood-neon)";
             setTimeout(() => document.body.style.backgroundColor = "var(--pure-light)", 100);
             setTimeout(() => document.body.style.backgroundColor = "var(--blood-neon)", 200);
@@ -261,10 +306,6 @@
         let width, height;
         let particles = [];
         let mouse = { x: -1000, y: -1000 };
-        
-        document.addEventListener('mousemove', (e) => {
-            mouse.x = e.clientX; mouse.y = e.clientY;
-        });
 
         function resize() {
             width = canvas.width = window.innerWidth;
