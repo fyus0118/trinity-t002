@@ -1,102 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tactical Task Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Teko:wght@600&display=swap" rel="stylesheet">
     <style>
-        /* Cyberpunk styling */
-        body { 
-            background-color: #191919; 
-            color: #e0e0e0; 
-            font-family: 'Courier New', monospace; 
-            margin: 0; padding: 0; 
-            display: flex; justify-content: center; align-items: center; 
-            height: 100vh; overflow: hidden;
-        }
-        .container { 
-            width: 100%; height: 100%; 
-            display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; 
-            text-align: center;
+        :root {
+            --bg-color: #050505;
+            --alert-red: #ff003c;
+            --alert-dark: #3a0000;
+            --normal-green: #00ff66;
+            --normal-dark: #002211;
         }
 
-        /* --- NORMAL MODE (Green) --- */
-        .normal .status-icon { font-size: 24px; margin-bottom: 5px; }
-        .normal h1 { color: #2ecc71; font-size: 14px; letter-spacing: 2px; margin: 0; }
-        .normal p { font-size: 10px; color: #555; margin-top: 5px; }
-
-        /* --- ALERT MODE (Red) --- */
-        .alert { 
-            border: 1px solid #e74c3c; 
-            background: rgba(231, 76, 60, 0.1);
-            animation: flashRed 2s infinite alternate;
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            background-color: var(--bg-color);
+            font-family: 'Noto Sans JP', sans-serif;
+            color: white; overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
         }
-        .alert h1 { color: #e74c3c; font-size: 12px; margin: 0 0 5px 0; text-transform: uppercase; }
-        .alert .cmd { color: #fff; font-size: 14px; font-weight: bold; margin-bottom: 10px; padding: 0 10px; }
+
+        /* 📺 画面全体の走査線（モニターエフェクト） */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px; pointer-events: none; z-index: 100;
+        }
+
+        /* Sci-Fi風の斜めカットパネル */
+        .panel {
+            width: 80%; max-width: 800px; padding: 40px;
+            position: relative; z-index: 10;
+            clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+            border: 2px solid;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        /* =========================================
+           🟢 ノーマルモードのデザイン
+        ========================================= */
+        .panel.normal {
+            border-color: var(--normal-green);
+            animation: pulse-green 4s infinite alternate;
+        }
+        .normal-header {
+            font-family: 'Teko', sans-serif; font-size: 3rem; color: var(--normal-green);
+            letter-spacing: 5px; text-align: center; margin: 0;
+        }
+        .normal-text {
+            color: #88ffbb; text-align: center; font-size: 1.2rem; margin-top: 10px;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 10px var(--normal-dark), inset 0 0 10px var(--normal-dark); }
+            100% { box-shadow: 0 0 30px var(--normal-green), inset 0 0 20px var(--normal-dark); }
+        }
+
+        /* =========================================
+           🚨 アラートモードのデザイン
+        ========================================= */
+        .panel.alert {
+            border-color: var(--alert-red);
+            background: rgba(20, 0, 0, 0.9);
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite, pulse-red 1s infinite alternate;
+        }
         
-        /* Interactive Button */
-        .btn { 
-            background: #e74c3c; color: #000; border: none; 
-            padding: 8px 20px; font-size: 12px; font-weight: 800; cursor: pointer; 
-            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
-            transition: 0.2s;
+        /* 危険を知らせるハザードストライプ */
+        .hazard-bar {
+            background: repeating-linear-gradient(
+                -45deg, var(--alert-red), var(--alert-red) 20px,
+                #000 20px, #000 40px
+            );
+            height: 30px; width: 100%; margin-bottom: 20px;
+            border: 2px solid var(--alert-red); box-sizing: border-box;
         }
-        .btn:hover { background: #fff; transform: scale(1.05); }
 
-        /* Timer Display */
-        .timer-box { display: none; }
-        .timer { font-size: 40px; font-weight: bold; color: #e74c3c; font-family: monospace; }
-        .timer-msg { font-size: 10px; color: #888; }
-
-        @keyframes flashRed { 
-            0% { box-shadow: inset 0 0 0px rgba(231, 76, 60, 0); } 
-            100% { box-shadow: inset 0 0 20px rgba(231, 76, 60, 0.3); } 
+        .alert-header {
+            font-family: 'Teko', sans-serif; font-size: 5rem; color: var(--alert-red);
+            letter-spacing: 10px; text-align: center; margin: 0; line-height: 1;
+            text-shadow: 0 0 10px var(--alert-red);
         }
+
+        .target-box {
+            border-left: 5px solid var(--alert-red); padding-left: 15px; margin: 30px 0;
+        }
+        .target-label { font-size: 0.9rem; color: #ff6666; font-weight: bold; letter-spacing: 2px; }
+        .target-name { font-size: 2rem; font-weight: 900; color: white; margin: 5px 0 0 0; }
+
+        .command-box {
+            background: #110000; border: 1px solid var(--alert-red); padding: 20px;
+            font-family: monospace; font-size: 1.5rem; color: white; min-height: 60px;
+        }
+        /* カーソルの点滅エフェクト */
+        .cursor { display: inline-block; width: 10px; height: 1.2rem; background-color: var(--alert-red); animation: blink 1s infinite; vertical-align: middle; margin-left: 5px; }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 20px var(--alert-dark); }
+            100% { box-shadow: 0 0 50px var(--alert-red), inset 0 0 30px var(--alert-dark); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-2px) rotate(-0.5deg); }
+            40% { transform: translateX(2px) rotate(0.5deg); }
+            60% { transform: translateX(-2px) rotate(0.5deg); }
+            80% { transform: translateX(2px) rotate(-0.5deg); }
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
-    <script>
-        function startBreach() {
-            document.getElementById('alert-content').style.display = 'none';
-            document.getElementById('timer-box').style.display = 'block';
-            
-            let timeLeft = 300; // 5 minutes
-            const display = document.getElementById('timer-display');
-            
-            const interval = setInterval(() => {
-                const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-                const s = (timeLeft % 60).toString().padStart(2, '0');
-                display.innerText = m + ":" + s;
-                timeLeft--;
-
-                if (timeLeft < 0) {
-                    clearInterval(interval);
-                    display.innerText = "DONE";
-                    display.style.color = "#2ecc71";
-                    document.getElementById('timer-msg').innerText = "SYSTEM SYNCED.";
-                }
-            }, 1000);
-        }
-    </script>
 </head>
-<body class="{{ mode }}">
-    <div class="container {{ mode }}">
-        
-        {% if mode == "normal" %}
-            <div class="status-icon">👁️</div>
-            <h1>SYSTEM ACTIVE</h1>
-            <p>Scanning Task Matrix...</p>
-        
-        {% else %}
-            <div id="alert-content">
-                <h1>⚠️ STAGNATION: {{ task_name }}</h1>
-                <div class="cmd">"{{ command }}"</div>
-                <button class="btn" onclick="startBreach()">⚡ EXECUTE (5 MIN)</button>
+<body>
+    <div class="scanlines"></div>
+
+    {% if mode == "alert" %}
+        <div class="panel alert">
+            <div class="hazard-bar"></div>
+            <h1 class="alert-header">WARNING</h1>
+            <div class="hazard-bar"></div>
+            
+            <div class="target-box">
+                <div class="target-label">TARGET STAGNANT TASK</div>
+                <div class="target-name">{{ task_name }}</div>
             </div>
 
-            <div id="timer-box" class="timer-box">
-                <div class="timer" id="timer-display">05:00</div>
-                <div class="timer-msg" id="timer-msg">JUST START. DO NOT FINISH.</div>
+            <div class="target-label" style="margin-bottom: 5px;">TACTICAL COMMAND</div>
+            <div class="command-box">
+                <span id="raw-command" style="display:none;">{{ command }}</span>
+                <span id="typewriter-output"></span><span class="cursor"></span>
             </div>
-        {% endif %}
+        </div>
 
-    </div>
+        <script>
+            // カタカタと文字を打つタイプライターエフェクト
+            document.addEventListener("DOMContentLoaded", () => {
+                const text = document.getElementById("raw-command").innerText;
+                const output = document.getElementById("typewriter-output");
+                let index = 0;
+
+                function typeWriter() {
+                    if (index < text.length) {
+                        output.innerHTML += text.charAt(index);
+                        index++;
+                        // 30〜80ミリ秒のランダムな間隔で打鍵感をリアルに演出
+                        const speed = Math.floor(Math.random() * 50) + 30;
+                        setTimeout(typeWriter, speed);
+                    }
+                }
+                // 画面表示から1秒（1000ms）待ってから指令の出力を開始
+                setTimeout(typeWriter, 1000);
+            });
+        </script>
+
+    {% else %}
+        <div class="panel normal">
+            <h1 class="normal-header">SYSTEM ACTIVE</h1>
+            <div class="normal-text">タスク マトリックスをスキャンしています...<br>異常なし</div>
+        </div>
+    {% endif %}
+
 </body>
 </html>
